@@ -4,7 +4,7 @@ import numpy as np
 from copy import deepcopy
 from torch import nn
 import torch.nn.functional as F
-import utils
+from pypc import utils
 
 
 class Layer(nn.Module):

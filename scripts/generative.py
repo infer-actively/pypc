@@ -3,6 +3,9 @@ import pprint
 
 import torch
 
+from tqdm import tqdm
+from time import sleep
+
 from pypc import utils
 from pypc import datasets
 from pypc import optim
@@ -40,7 +43,8 @@ def main(cf):
         for epoch in range(1, cf.n_epochs + 1):
 
             print(f"\nTrain @ epoch {epoch} ({len(train_loader)} batches)")
-            for batch_id, (img_batch, label_batch) in enumerate(train_loader):
+            sleep(0.1)
+            for batch_id, (img_batch, label_batch) in enumerate(tqdm(train_loader)):
                 model.train_batch_generative(
                     img_batch, label_batch, cf.n_train_iters, fixed_preds=cf.fixed_preds_train
                 )
@@ -53,8 +57,9 @@ def main(cf):
 
             if epoch % cf.test_every == 0:
                 print(f"\nTest @ epoch {epoch}")
+                sleep(0.1)
                 acc = 0
-                for _, (img_batch, label_batch) in enumerate(test_loader):
+                for _, (img_batch, label_batch) in enumerate(tqdm(test_loader)):
                     label_preds = model.test_batch_generative(
                         img_batch, cf.n_test_iters, init_std=cf.init_std, fixed_preds=cf.fixed_preds_test
                     )

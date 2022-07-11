@@ -3,6 +3,9 @@ import pprint
 
 import torch
 
+from tqdm import tqdm
+from time import sleep
+
 from pypc import utils
 from pypc import datasets
 from pypc import optim
@@ -47,7 +50,8 @@ def main(cf):
         for epoch in range(1, cf.n_epochs + 1):
 
             print(f"\nTrain @ epoch {epoch} ({len(train_loader)} batches)")
-            for batch_id, (img_batch, label_batch) in enumerate(train_loader):
+            sleep(0.1)
+            for batch_id, (img_batch, label_batch) in enumerate(tqdm(train_loader)):
                 model.train_batch_supervised(
                     img_batch, label_batch, cf.n_train_iters, fixed_preds=cf.fixed_preds_train
                 )
@@ -60,7 +64,7 @@ def main(cf):
 
             if epoch % cf.test_every == 0:
                 acc = 0
-                for _, (img_batch, label_batch) in enumerate(test_loader):
+                for _, (img_batch, label_batch) in enumerate(tqdm(test_loader)):
                     label_preds = model.test_batch_supervised(img_batch)
                     acc += datasets.accuracy(label_preds, label_batch)
                 metrics["acc"].append(acc / len(test_loader))

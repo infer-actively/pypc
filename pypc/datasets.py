@@ -156,12 +156,13 @@ def _preprocess_batch(batch):
     return (batch[0], batch[1])
 
 
-def _get_transform(normalize=True, mean=(0.5), std=(0.5)):
+def _get_transform(normalize=True, mean=0.0, std=1.0):
     """
     Define transformation to convert PIL image or numpy.ndarray to tensor with optional normalization
+
     :param normalize: True or False
-    :param mean: Transformed mean
-    :param std: Transformed std dev
+    :param mean: Input mean (after scaling to range [0,1])
+    :param std: Input std dev (after scaling to range [0,1])
     :return: Transformation
     """
     transform = [transforms.ToTensor()]

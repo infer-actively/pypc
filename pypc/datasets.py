@@ -157,9 +157,16 @@ def _preprocess_batch(batch):
 
 
 def _get_transform(normalize=True, mean=(0.5), std=(0.5)):
+    """
+    Define transformation to convert PIL image or numpy.ndarray to tensor with optional normalization
+    :param normalize: True or False
+    :param mean: Transformed mean
+    :param std: Transformed std dev
+    :return: Transformation
+    """
     transform = [transforms.ToTensor()]
     if normalize:
-        transform + [transforms.Normalize(mean=mean, std=std)]
+        transform += [transforms.Normalize(mean=mean, std=std)]
     return transforms.Compose(transform)
 
 

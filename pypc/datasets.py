@@ -9,13 +9,30 @@ from pypc import utils
 
 class MNIST(datasets.MNIST):
     def __init__(self, train, size=None, scale=None, normalize=False):
-        transform = _get_transform(normalize=normalize, mean=(0.1307), std=(0.3081))
+        """
+        Load MNIST dataset, scale to range [0,1], optionally normalise with mean = 0 and std dev = 1,
+        optionally set label scale factor, optionally limit size of dataset
+
+        :param train: True for training data, False for test data
+        :param size: Number of samples to keep in the dataset
+        :param scale: Scale factor for one-hot labels (e.g. scale=1 => 0 or 1, scale=0.5 => 0.25 or 0.75,
+        scale=0.1 => 0.45 or 0.55)
+        :param normalize: True to normalize
+        """
+        transform = _get_transform(normalize=normalize, mean=(0.1307), std=(0.3081))  # Transform to mean=0, std=1
         super().__init__("./data/mnist", download=True, transform=transform, train=train)
         self.scale = scale
         if size is not None:
             self._reduce(size)
 
     def __getitem__(self, index):
+        """
+        Return image (data) and label (target) with image converted from 28x28 to 784x1 and label converted to one-hot
+        encoding (optionally scaled)
+
+        :param index: Index
+        :return: image, label
+        """
         data, target = super().__getitem__(index)
         data = _to_vector(data)
         target = _one_hot(target)
@@ -24,6 +41,11 @@ class MNIST(datasets.MNIST):
         return data, target
 
     def _reduce(self, size):
+        """
+        Crop the dataset
+
+        :param size: Maximum sample number to retain
+        """
         self.data = self.data[0:size]
         self.targets = self.targets[0:size]
 

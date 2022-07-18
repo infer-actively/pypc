@@ -1,7 +1,6 @@
 import math
 import torch
 import numpy as np
-from copy import deepcopy
 from torch import nn
 import torch.nn.functional as F
 from pypc import utils
@@ -11,6 +10,16 @@ class Layer(nn.Module):
     def __init__(
         self, in_size, out_size, act_fn, use_bias=False, kaiming_init=False, is_forward=False
     ):
+        """
+        Initialise layer
+
+        :param in_size: Number of input nodes
+        :param out_size: Number of output nodes
+        :param act_fn: Activation function
+        :param use_bias: Include bias terms?
+        :param kaiming_init: Use Kaiming weight initialisation?
+        :param is_forward:
+        """
         super().__init__()
         self.in_size = in_size
         self.out_size = out_size
@@ -19,14 +28,8 @@ class Layer(nn.Module):
         self.is_forward = is_forward
         self.kaiming_init = kaiming_init
 
-        self.weights = None
-        self.bias = None
-        self.grad = {"weights": None, "bias": None}
-
-        if kaiming_init:
-            self._reset_params_kaiming()
-        else:
-            self._reset_params()
+        self._reset_grad()
+        self.reset()
 
     def forward(self, *args, **kwargs):
         raise NotImplementedError
@@ -66,7 +69,6 @@ class FCLayer(Layer):
         self, in_size, out_size, act_fn, use_bias=False, kaiming_init=False, is_forward=False
     ):
         super().__init__(in_size, out_size, act_fn, use_bias, kaiming_init, is_forward=is_forward)
-        self.use_bias = use_bias
         self.inp = None
 
     def forward(self, inp):

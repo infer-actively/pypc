@@ -27,7 +27,11 @@ def main(cf):
     print(f"Loaded data [train batches: {len(train_loader)} test batches: {len(test_loader)}]")
 
     model = PCModel(
-        nodes=cf.nodes, mu_dt=cf.mu_dt, act_fn=cf.act_fn, use_bias=cf.use_bias, kaiming_init=cf.kaiming_init
+        nodes=cf.nodes,
+        mu_dt=cf.mu_dt,
+        act_fn=cf.act_fn,
+        use_bias=cf.use_bias,
+        kaiming_init=cf.kaiming_init,
     )
     optimizer = optim.get_optim(
         model.params,
@@ -38,13 +42,13 @@ def main(cf):
         weight_decay=cf.weight_decay,
     )
 
-    with torch.no_grad():
+    with torch.no_grad():  # Disable automatic gradient calculation
         metrics = {"acc": []}
         for epoch in range(1, cf.n_epochs + 1):
 
             print(f"\nTrain @ epoch {epoch} ({len(train_loader)} batches)")
             sleep(0.1)
-            for batch_id, (img_batch, label_batch) in enumerate(tqdm(train_loader)):
+            for batch_id, (img_batch, label_batch) in enumerate(tqdm(train_loader, disable=False)):
                 model.train_batch_generative(
                     img_batch, label_batch, cf.n_train_iters, fixed_preds=cf.fixed_preds_train
                 )
@@ -59,7 +63,7 @@ def main(cf):
                 print(f"\nTest @ epoch {epoch}")
                 sleep(0.1)
                 acc = 0
-                for _, (img_batch, label_batch) in enumerate(tqdm(test_loader)):
+                for _, (img_batch, label_batch) in enumerate(tqdm(test_loader, disable=False)):
                     label_preds = model.test_batch_generative(
                         img_batch, cf.n_test_iters, init_std=cf.init_std, fixed_preds=cf.fixed_preds_test
                     )
@@ -75,23 +79,23 @@ def main(cf):
 
 
 if __name__ == "__main__":
-    cf = utils.AttrDict()
-    cf.seeds = [0]
+    cf = utils.AttrDict()  # Create configuration
+    cf.seeds = [0]  # Create list of >=1 seeds for repeat runs
 
     for seed in cf.seeds:
 
         # experiment params
         cf.seed = seed
-        cf.n_epochs = 20
+        cf.n_epochs = 2  # 20
         cf.test_every = 1
         cf.logdir = f"data/generative/{seed}/"
         cf.imgdir = cf.logdir + "imgs/"
 
         # dataset params
-        cf.train_size = None
-        cf.test_size = None
+        cf.train_size = 6000  # None
+        cf.test_size = 1000  # None
         cf.label_scale = None
-        cf.normalize = True
+        cf.normalize = False  # True
 
         # optim params
         cf.optim = "Adam"

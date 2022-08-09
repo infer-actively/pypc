@@ -32,24 +32,43 @@ class Layer(nn.Module):
         self.reset()
 
     def forward(self, *args, **kwargs):
+        """
+        Abstract forward pass method. Must be overridden.
+
+        :param args:
+        :param kwargs:
+        """
         raise NotImplementedError
 
     def reset(self):
+        """
+        Reset weights and biases
+        """
         if self.kaiming_init:
             self._reset_params_kaiming()
         else:
             self._reset_params()
 
     def _reset_grad(self):
+        """
+        Reset gradients
+        """
         self.grad = {"weights": None, "bias": None}
 
     def _reset_params(self):
+        """
+        Reset weights to be normally distributed with mean=0.0 and std dev 0.05 and reset biases to zero
+        """
         weights = torch.empty((self.in_size, self.out_size)).normal_(mean=0.0, std=0.05)
         bias = torch.zeros((self.out_size))
         self.weights = utils.set_tensor(weights)
         self.bias = utils.set_tensor(bias)
 
     def _reset_params_kaiming(self):
+        """
+        Reset weights using Kaiming He initialisation and reset biases to be uniformly distributed about zero
+        NOTE: He et al (2015) arXiv:1502.01852v1 initialise biases to zero
+        """
         self.weights = utils.set_tensor(torch.empty((self.in_size, self.out_size)))
         self.bias = utils.set_tensor(torch.zeros((self.out_size)))
         if isinstance(self.act_fn, utils.Linear):
@@ -68,10 +87,26 @@ class FCLayer(Layer):
     def __init__(
         self, in_size, out_size, act_fn, use_bias=False, kaiming_init=False, is_forward=False
     ):
+        """
+        Initialise fully connected layer
+
+        :param in_size: Number of input nodes
+        :param out_size: Number of output nodes
+        :param act_fn: Activation function
+        :param use_bias: Include bias terms?
+        :param kaiming_init: Use Kaiming weight initialisation?
+        :param is_forward:
+        """
         super().__init__(in_size, out_size, act_fn, use_bias, kaiming_init, is_forward=is_forward)
         self.inp = None
 
     def forward(self, inp):
+        """
+        Perform forward pass for batch
+
+        :param inp: Node inputs for batch, Tensor:(batch_size, in_size)
+        :return: Node outputs for batch, Tensor:(batch_size, out_size)
+        """
         self.inp = inp.clone()
         out = self.act_fn(torch.matmul(self.inp, self.weights))
         if self.use_bias:
@@ -79,17 +114,27 @@ class FCLayer(Layer):
         return out
 
     def backward(self, err):
+        """
+        Perform backward pass for batch
+
+        :param err: Errors for batch, Tensor:(batch_size, out_size)
+        :return: Tensor:(batch_size, in_size)
+        """
         fn_deriv = self.act_fn.deriv(torch.matmul(self.inp, self.weights))
         out = torch.matmul(err * fn_deriv, self.weights.T)
         return out
 
     def update_gradient(self, err):
+        """
+        Update gradients for weights and biases
+
+        :param err: Errors for batch, Tensor:(batch_size, out_size)
+        """
         fn_deriv = self.act_fn.deriv(torch.matmul(self.inp, self.weights))
         delta = torch.matmul(self.inp.T, err * fn_deriv)
         self.grad["weights"] = delta
         if self.use_bias:
             self.grad["bias"] = torch.sum(err, axis=0)
-
 
 
 class ConvLayer(Layer):

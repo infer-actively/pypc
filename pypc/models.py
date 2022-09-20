@@ -104,12 +104,12 @@ class PCModel(object):
         :param n_iters: Number of training iterations
         :param fixed_preds: Fix predictions at initial values?
         """
-        self.reset()
-        self.set_input(label_batch)
-        self.propagate_mu()
-        self.set_target(img_batch)
-        self.train_updates(n_iters, fixed_preds=fixed_preds)
-        self.update_grads()
+        self.reset()  # Initialise the prediction, error, and mu data structures
+        self.set_input(label_batch)  # Set the model inputs, mus[0], equal to the training *labels*
+        self.propagate_mu()  # Perform forward pass, update mus for all nodes except inputs and targets
+        self.set_target(img_batch)  # Set the model outputs (targets), mus[-1], equal to the training *images*
+        self.train_updates(n_iters, fixed_preds=fixed_preds)  # Iteratively update mus, predictions and errors
+        self.update_grads()  # Calculate gradients of weights and biases for all layers
 
     def test_batch_supervised(self, img_batch):
         return self.forward(img_batch)

@@ -3,6 +3,9 @@ import pprint
 
 import torch
 
+from tqdm import tqdm
+from time import sleep
+
 from pypc import utils
 from pypc import datasets
 from pypc import optim
@@ -16,12 +19,8 @@ def main(cf):
     utils.seed(cf.seed)
     utils.save_json({k: str(v) for (k, v) in cf.items()}, cf.logdir + "config.json")
 
-    train_dataset = datasets.MNIST(
-        train=True, scale=cf.label_scale, size=cf.train_size, normalize=cf.normalize
-    )
-    test_dataset = datasets.MNIST(
-        train=False, scale=cf.label_scale, size=cf.test_size, normalize=cf.normalize
-    )
+    train_dataset = datasets.MNIST(train=True, scale=cf.label_scale, size=cf.train_size, normalize=cf.normalize)
+    test_dataset = datasets.MNIST(train=False, scale=cf.label_scale, size=cf.test_size, normalize=cf.normalize)
     train_loader = datasets.get_dataloader(train_dataset, cf.batch_size)
     test_loader = datasets.get_dataloader(test_dataset, cf.batch_size)
     print(f"Loaded data [train batches: {len(train_loader)} test batches: {len(test_loader)}]")
@@ -47,7 +46,8 @@ def main(cf):
         for epoch in range(1, cf.n_epochs + 1):
 
             print(f"\nTrain @ epoch {epoch} ({len(train_loader)} batches)")
-            for batch_id, (img_batch, label_batch) in enumerate(train_loader):
+            sleep(0.1)
+            for batch_id, (img_batch, label_batch) in enumerate(tqdm(train_loader, disable=False)):
                 model.train_batch_supervised(
                     img_batch, label_batch, cf.n_train_iters, fixed_preds=cf.fixed_preds_train
                 )
@@ -60,7 +60,7 @@ def main(cf):
 
             if epoch % cf.test_every == 0:
                 acc = 0
-                for _, (img_batch, label_batch) in enumerate(test_loader):
+                for _, (img_batch, label_batch) in enumerate(tqdm(test_loader, disable=False)):
                     label_preds = model.test_batch_supervised(img_batch)
                     acc += datasets.accuracy(label_preds, label_batch)
                 metrics["acc"].append(acc / len(test_loader))
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
         # model params
         cf.use_bias = True
-        cf.kaiming_init = False
+        cf.kaiming_init = True  # False
         cf.nodes = [784, 300, 100, 10]
         cf.act_fn = utils.ReLU()
 

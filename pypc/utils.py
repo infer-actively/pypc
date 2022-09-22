@@ -49,6 +49,11 @@ class Tanh(Activation):
 
 
 def seed(seed):
+    """
+    Set seeds for relevant pseudorandom number generators
+
+    :param seed: Seed value
+    """
     torch.manual_seed(seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
@@ -57,6 +62,12 @@ def seed(seed):
 
 
 def set_tensor(tensor):
+    """
+    Move data onto the selected cpu/cuda device with dtype=torch.float32
+
+    :param tensor: Tensor object
+    :return: Tensor object allocated to selected device with dtype=torch.float32
+    """
     return tensor.to(DEVICE).float()
 
 
@@ -65,6 +76,12 @@ def flatten_array(array):
 
 
 def save_json(obj, path):
+    """
+    Save an object as a json file
+
+    :param obj: Object to be saved
+    :param path: File path
+    """
     with open(path, "w") as file:
         json.dump(obj, file)
 
